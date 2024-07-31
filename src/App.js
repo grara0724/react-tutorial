@@ -3,62 +3,72 @@ import TodoList from "./TodoList";
 import { v4 as uuid4 } from "uuid";
 
 function App() {
-  // useStateは変数を監視するのに使われる
-  // todoの中にはname,id,completedのようなオブジェクトを格納する
-  // const[A,B] =useState();はAが更新された際に再レンダリングされる。(リロードされる)
-  const [todos, setTodos] = useState([
-    { id: 1, name: "Todo1", completed: false },
-    { id: 2, name: "Todo2", completed: false },]);
+  // 初期のTodoリストを生成する関数
+  const initialTodos = [
+    { id: uuid4(), name: "Todo1", completed: false },
+    { id: uuid4(), name: "Todo2", completed: false },
+  ];
 
-  // inputタイプの中にref={todoNameRef}と記載したものを取得できる
+  // todos: 現在のTodoリストの状態を保持
+  // setTodos: Todoリストの状態を更新する関数
+  const [todos, setTodos] = useState(initialTodos);
+
+  // todoNameRef: input要素への参照を保持
   const todoNameRef = useRef();
 
+  // 新しいTodoを追加する関数
   const handleAddTodo = () => {
-    // タスクを追加する
-    const name = todoNameRef.current.value;
+    const name = todoNameRef.current.value; // 入力されたタスク名を取得
+
+    // 空のタスク名の場合は何もしない
     if (name === "") return;
+
+    // 新しいTodoを既存のリストに追加
     setTodos((prevTodos) => {
-      // prevTodosに右側の値を追加する
-      // ...はスプレッド構文という
-      //       const foo = [1, 2];
-
-      // // 配列のクローン
-      // const bar = [...foo]; // => [1, 2]
-
-      // // 要素を追加して新しい配列を生成
-      // const baz = [...foo, 3, 4]; // => [1, 2, 3, 4]
-
-      // // 配列をマージ
-      // const hoge = [...foo, ...bar]; // => [1, 2, 1, 2]
       return [...prevTodos, { id: uuid4(), name: name, completed: false }];
     });
-    todoNameRef.current.value = null;
-  }
 
-  const toggleTodo = (id) => {
-    const newTodos = [...todos];
-    //todoにnweTodosの中から一つずつtodoとして取り出し、todo.idとidが一致していたらtodoに入れる
-    const todo = newTodos.find((todo) => todo.id === id);
-    todo.completed = !todo.completed;
-    setTodos(newTodos);
+    // 入力フィールドをクリア
+    todoNameRef.current.value = null;
   };
 
-  const handleClear = () => {
-    const newTodos = todos.filter((todo) => !todo.completed)
-    setTodos(newTodos);
-  }
+  // Todoの完了状態を切り替える関数
+  const toggleTodo = (id) => {
+    const newTodos = [...todos]; // 現在のTodoリストをコピー
+    const todo = newTodos.find((todo) => todo.id === id); // idが一致するTodoを見つける
 
-  // リターンタグの一番外側にはdivを入れないと反映されない
-  return (<div>
-    {/* コンポーネントの部分にA={B}と記載することでAという名前でBを渡すという意味 */}
-    {/* このコンポーネントが読み込まれるところで受け取る必要もある */}
-    <TodoList todos={todos} toggleTodo={toggleTodo} />
-    <input type="text" ref={todoNameRef} />
-    <button onClick={handleAddTodo}>タスクを追加</button>
-    <button onClick={handleClear}>完了したタスクの削除</button>
-    {/* アロー関数でfilter関数でtodoのなかでコンプリートじゃないものの長さ */}
-    <div>残りのタスクを表示:{todos.filter((todo) => !todo.completed).length}</div>
-  </div>);
+    // 該当するTodoが存在する場合、完了状態を切り替える
+    if (todo) {
+      todo.completed = !todo.completed;
+      setTodos(newTodos); // Todoリストを更新
+    }
+  };
+
+  // 完了したTodoを削除する関数
+  const handleClear = () => {
+    const newTodos = todos.filter((todo) => !todo.completed); // 未完了のTodoのみを残す
+    setTodos(newTodos); // Todoリストを更新
+  };
+
+  // アプリケーションのUIをレンダリング
+  return (
+    <div>
+      {/* Todoリストコンポーネントに現在のTodoリストとtoggleTodo関数を渡す */}
+      <TodoList todos={todos} toggleTodo={toggleTodo} />
+
+      {/* 新しいTodoを入力するためのテキストボックス */}
+      <input type="text" ref={todoNameRef} />
+
+      {/* 新しいTodoを追加するボタン */}
+      <button onClick={handleAddTodo}>タスクを追加</button>
+
+      {/* 完了したTodoを削除するボタン */}
+      <button onClick={handleClear}>完了したタスクの削除</button>
+
+      {/* 未完了のTodo数を表示 */}
+      <div>残りのタスクを表示: {todos.filter((todo) => !todo.completed).length}</div>
+    </div>
+  );
 }
 
 export default App;
